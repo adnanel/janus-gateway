@@ -5793,6 +5793,9 @@ static void janus_videoroom_recorder_create(janus_videoroom_publisher *participa
 				JANUS_LOG(LOG_ERR, "Couldn't open an video recording file for this publisher!\n");
 			}
 		}
+		/* If the video-orientation extension has been negotiated, mark it in the recording */
+		if(participant->video_orient_extmap_id > 0)
+			janus_recorder_add_extmap(rc, participant->video_orient_extmap_id, JANUS_RTP_EXTMAP_VIDEO_ORIENTATION);
 		/* If media is encrypted, mark it in the recording */
 		if(participant->e2ee)
 			janus_recorder_encrypted(rc);
