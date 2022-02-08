@@ -1,6 +1,13 @@
 /*!
  * \mainpage Janus - General purpose WebRTC server
  *
+ * <div class="alert alert-warning">
+ *		<b>Note Well:</b> these are the demos and documentation for the <code>multistream</code> version
+ *		of Janus, which is a new version. If you want to check the current version of
+ *		Janus instead (i.e., <code>0.x</code>, a.k.a. "master") click
+ *		<a href="https://janus-legacy.conf.meetecho.com">here</a> instead.
+ * </div>
+ *
  * \par Developer Documentation for the Janus WebRTC server
  * This is the main developer documentation for the Janus WebRTC
  * Server, generated with the help of
@@ -68,7 +75,7 @@
  *
  * \section copyright Copyright and author
  *
- * Janus WebRTC Server © 2014-2021 <a href="https://www.meetecho.com/">Meetecho</a> (https://www.meetecho.com/)
+ * Janus WebRTC Server © 2014-2022 <a href="https://www.meetecho.com/">Meetecho</a> (https://www.meetecho.com/)
  *
  * \author Lorenzo Miniero <lorenzo@meetecho.com> ( \ref CREDITS )
  *
@@ -3825,7 +3832,7 @@ ldd janus | grep asan
 
 /*! \page CREDITS Credits
  *
- * Janus WebRTC Server © 2014-2021 <a href="https://www.meetecho.com/">Meetecho</a> (https://www.meetecho.com/)
+ * Janus WebRTC Server © 2014-2022 <a href="https://www.meetecho.com/">Meetecho</a> (https://www.meetecho.com/)
  *
  * \b Author:
  *         Lorenzo Miniero <lorenzo@meetecho.com>
@@ -4030,7 +4037,8 @@ ldd janus | grep asan
  *    - Presentation on how to use WHIP and Janus for broadcasting at <a href="https://www.youtube.com/watch?v=b_QBd3WnGgY">IIT RTC 2021</a>;
  *    - Presentation on the efforts to integrate audio redundancy via RED in Janus at <a href="https://www.youtube.com/watch?v=NWEYv6OILZI">ClueCon 2021</a>;
  *    - Presentation on how to use WHIP, NDI and Janus together at <a href="https://2021.commcon.xyz/talks/whip-ndi-and-janus-genesis-of-a-broadcasting-demo">CommCon 2021</a>;
- *    - Presentation on Janode, the official Janus nodejs SDK, at <a href="https://2021.commcon.xyz/talks/janode-the-janus-node-js-sdk">CommCon 2021</a>. \n\n
+ *    - Presentation on Janode, the official Janus nodejs SDK, at <a href="https://2021.commcon.xyz/talks/janode-the-janus-node-js-sdk">CommCon 2021</a>;
+ *    - Presentation on WebRTC broadcasting with WHIP and how to scale at <a href="https://fosdem.org/2022/schedule/event/rtc_whip/">FOSDEM 2022</a>. \n\n
  *    Apart from these presentations, make sure you also check the slides
  *    and presentations from <a href="https://januscon.it/2019">JanusCon</a>,
  *    the Janus conference we hosted here in Napoli.

@@ -233,6 +233,7 @@ room-<unique room ID>: {
 	"new_fir_freq" : <new period for regular PLI keyframe requests to publishers>,
 	"new_publishers" : <new cap on the number of concurrent active WebRTC publishers>,
 	"new_lock_record" : <true|false, whether recording state can only be changed when providing the room secret>,
+	"new_rec_dir" : "<the new path where the next .mjr files should being saved>",
 	"permanent" : <true|false, whether the room should be also removed from the config file, default=false>
 }
 \endverbatim
@@ -449,7 +450,8 @@ room-<unique room ID>: {
 			"id" : <unique numeric ID of the participant>,
 			"display" : "<display name of the participant, if any; optional>",
 			"publisher" : "<true|false, whether user is an active publisher in the room>",
-			"talking" : <true|false, whether user is talking or not (only if audio levels are used)>
+			"talking" : <true|false, whether user is talking or not (only if audio levels are used)>,
+			"subscribers" : <number of subscribers for this participant, if any>
 		},
 		// Other participants
 	]
@@ -1548,6 +1550,8 @@ static struct janus_json_parameter edit_parameters[] = {
 	{"new_bitrate", JSON_INTEGER, JANUS_JSON_PARAM_POSITIVE},
 	{"new_fir_freq", JSON_INTEGER, JANUS_JSON_PARAM_POSITIVE},
 	{"new_publishers", JSON_INTEGER, JANUS_JSON_PARAM_POSITIVE},
+	{"new_lock_record", JANUS_JSON_BOOL, 0},
+	{"new_rec_dir", JSON_STRING, 0},
 	{"permanent", JANUS_JSON_BOOL, 0}
 };
 static struct janus_json_parameter room_parameters[] = {
@@ -1993,7 +1997,7 @@ typedef struct janus_videoroom_publisher {
 	gint64 remb_startup;/* Incremental changes on REMB to reach the target at startup */
 	gint64 remb_latest;	/* Time of latest sent REMB (to avoid flooding) */
 	gboolean recording_active;	/* Whether this publisher has to be recorded or not */
-	gchar *recording_base;	/* Base name for the recording (e.g., /path/to/filename, will generate /path/to/filename-audio.mjr and/or /path/to/filename-video.mjr */
+	gchar *recording_base;	/* Base name for the recording (e.g., /path/to/filename, will generate /path/to/filename-audio.mjr and/or /path/to/filename-video.mjr) */
 	janus_mutex rec_mutex;	/* Mutex to protect the recorders from race conditions */
 	GSList *subscriptions;	/* Subscriptions this publisher has created (who this publisher is watching) */
 	janus_mutex subscribers_mutex;
@@ -4374,6 +4378,8 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 				janus_config_add(config, c, janus_config_item_create("is_private", "yes"));
 			if(videoroom->require_pvtid)
 				janus_config_add(config, c, janus_config_item_create("require_pvtid", "yes"));
+			if(videoroom->signed_tokens)
+				janus_config_add(config, c, janus_config_item_create("signed_tokens", "yes"));
 			if(videoroom->require_e2ee)
 				janus_config_add(config, c, janus_config_item_create("require_e2ee", "yes"));
 			g_snprintf(value, BUFSIZ, "%"SCNu32, videoroom->bitrate);
@@ -4492,6 +4498,7 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 		json_t *fir_freq = json_object_get(root, "new_fir_freq");
 		json_t *publishers = json_object_get(root, "new_publishers");
 		json_t *lock_record = json_object_get(root, "new_lock_record");
+		json_t *rec_dir = json_object_get(root, "new_rec_dir");
 		json_t *permanent = json_object_get(root, "permanent");
 		gboolean save = permanent ? json_is_true(permanent) : FALSE;
 		if(save && config == NULL) {
@@ -4541,6 +4548,12 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 		}
 		if(lock_record)
 			videoroom->lock_record = json_is_true(lock_record);
+		if(rec_dir) {
+			char *old_rec_dir = videoroom->rec_dir;
+			char *new_rec_dir = g_strdup(json_string_value(rec_dir));
+			videoroom->rec_dir = new_rec_dir;
+			g_free(old_rec_dir);
+		}
 		if(save) {
 			/* This room is permanent: save to the configuration file too
 			 * FIXME: We should check if anything fails... */
@@ -4558,6 +4571,8 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 				janus_config_add(config, c, janus_config_item_create("is_private", "yes"));
 			if(videoroom->require_pvtid)
 				janus_config_add(config, c, janus_config_item_create("require_pvtid", "yes"));
+			if(videoroom->signed_tokens)
+				janus_config_add(config, c, janus_config_item_create("signed_tokens", "yes"));
 			if(videoroom->require_e2ee)
 				janus_config_add(config, c, janus_config_item_create("require_e2ee", "yes"));
 			g_snprintf(value, BUFSIZ, "%"SCNu32, videoroom->bitrate);
@@ -5214,6 +5229,7 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 			}
 		} else {
 			/* Old deprecated approach: return the legacy info as well */
+			JANUS_LOG(LOG_WARN, "Deprecated 'rtp_forward' API: please start looking into the new one for the future\n");
 			rtp_stream = json_object();
 			int video_port[3] = {-1, -1, -1}, video_rtcp_port = -1, video_pt[3] = {0, 0, 0};
 			uint32_t video_ssrc[3] = {0, 0, 0};
@@ -5456,6 +5472,7 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 				json_object_set_new(rtp_stream, "data_stream_id", json_integer(data_handle));
 				json_object_set_new(rtp_stream, "data", json_integer(data_port));
 			}
+			json_object_set_new(rtp_stream, "warning", json_string("deprecated_api"));
 		}
 		janus_mutex_unlock(&publisher->rtp_forwarders_mutex);
 		janus_mutex_unlock(&videoroom->mutex);
@@ -6151,10 +6168,10 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 					json_array_append_new(flist, fl);
 				}
 				janus_mutex_unlock(&ps->rtp_forwarders_mutex);
-				json_object_set_new(pl, "forwarders", flist);
 				temp = temp->next;
 			}
 			janus_mutex_unlock(&p->rtp_forwarders_mutex);
+			json_object_set_new(pl, "forwarders", flist);
 			json_array_append_new(list, pl);
 		}
 		janus_mutex_unlock(&videoroom->mutex);
@@ -6172,13 +6189,12 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 			goto prepare_response;
 		json_t *record = json_object_get(root, "record");
 		gboolean recording_active = json_is_true(record);
-		JANUS_LOG(LOG_VERB, "Enable Recording : %d \n", (recording_active ? 1 : 0));
+		JANUS_LOG(LOG_VERB, "Enable Recording: %d\n", (recording_active ? 1 : 0));
 		/* Lookup room */
 		janus_mutex_lock(&rooms_mutex);
 		janus_videoroom *videoroom = NULL;
 		error_code = janus_videoroom_access_room(root, TRUE, FALSE, &videoroom, error_cause, sizeof(error_cause));
 		if(error_code != 0) {
-			JANUS_LOG(LOG_ERR, "Failed to access videoroom\n");
 			janus_mutex_unlock(&rooms_mutex);
 			goto prepare_response;
 		}
@@ -6200,7 +6216,8 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 					janus_mutex_lock(&participant->rec_mutex);
 					gboolean prev_recording_active = participant->recording_active;
 					participant->recording_active = recording_active;
-					JANUS_LOG(LOG_VERB, "Setting record property: %s (room %s, user %s)\n", participant->recording_active ? "true" : "false", participant->room_id_str, participant->user_id_str);
+					JANUS_LOG(LOG_VERB, "Setting record property: %s (room %s, user %s)\n",
+						participant->recording_active ? "true" : "false", participant->room_id_str, participant->user_id_str);
 					/* Do we need to do something with the recordings right now? */
 					if(participant->recording_active != prev_recording_active) {
 						/* Something changed */
@@ -7769,6 +7786,7 @@ static void *janus_videoroom_handler(void *data) {
 					json_object_set_new(root, "streams", m);
 					feeds = json_object_get(root, "streams");
 					legacy = TRUE;
+					JANUS_LOG(LOG_WARN, "Deprecated subscriber 'join' API: please start looking into the new one for the future\n");
 				}
 				json_t *cpc = json_object_get(root, "close_pc");
 				gboolean close_pc  = cpc ? json_is_true(cpc) : TRUE;
@@ -8101,8 +8119,10 @@ static void *janus_videoroom_handler(void *data) {
 				json_object_set_new(event, "room", string_ids ?
 					json_string(subscriber->room_id_str) : json_integer(subscriber->room_id));
 				/* If this is a legacy subscription, put the feed ID too */
-				if(legacy)
+				if(legacy) {
 					json_object_set_new(event, "id", string_ids ? json_string(feed_id_str) : json_integer(feed_id));
+					json_object_set_new(event, "warning", json_string("deprecated_api"));
+				}
 				json_t *media = janus_videoroom_subscriber_streams_summary(subscriber, legacy, event);
 				json_object_set_new(event, "streams", media);
 				session->participant_type = janus_videoroom_p_type_subscriber;
@@ -9312,7 +9332,7 @@ static void *janus_videoroom_handler(void *data) {
 					g_list_free(touched_already);
 					janus_refcount_decrease(&publisher->ref);
 					/* Take note of the fact this is a legacy request */
-					JANUS_LOG(LOG_WARN, "Legacy 'switch' request: please start using the streams array instead\n");
+					JANUS_LOG(LOG_WARN, "Deprecated VideoRoom 'switch' API: please start looking into the new one for the future\n");
 				}
 				/* If we got here, we have a feeds list: make sure we have everything we need */
 				if(json_array_size(feeds) == 0) {

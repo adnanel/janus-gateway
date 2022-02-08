@@ -79,15 +79,15 @@ janus_sdp *janus_sdp_preparse(void *ice_handle, const char *jsep_sdp, char *erro
 					}
 				}
 			}
-			/* If the m-line is disabled don't actually increase the count */
-			if(m->port == 0) {
-				if(m->type == JANUS_SDP_AUDIO) {
-					*audio = *audio - 1;
-				} else if(m->type == JANUS_SDP_VIDEO) {
-					*video = *video - 1;
-				}
-			}
 			tempA = tempA->next;
+		}
+		/* If the m-line is disabled don't actually increase the count */
+		if(m->port == 0) {
+			if(m->type == JANUS_SDP_AUDIO) {
+				*audio = *audio - 1;
+			} else if(m->type == JANUS_SDP_VIDEO) {
+				*video = *video - 1;
+			}
 		}
 		temp = temp->next;
 	}
@@ -494,6 +494,9 @@ int janus_sdp_process_remote(void *ice_handle, janus_sdp *remote_sdp, gboolean r
 									if(medium->clock_rates == NULL)
 										medium->clock_rates = g_hash_table_new(NULL, NULL);
 									g_hash_table_insert(medium->clock_rates, GINT_TO_POINTER(ptype), GUINT_TO_POINTER(clock_rate));
+									/* Check if opus/red is negotiated */
+									if(strstr(a->value, "red/48000/2"))
+										medium->opusred_pt = ptype;
 								}
 							}
 						}
@@ -1291,6 +1294,10 @@ char *janus_sdp_merge(void *ice_handle, janus_sdp *anon, gboolean offer) {
 		a = janus_sdp_attribute_create("fingerprint", "sha-256 %s", janus_dtls_get_local_fingerprint());
 		anon->attributes = g_list_insert_before(anon->attributes, first, a);
 	}
+	/* Notify we support 1-byte and 2-byte extensions
+	 * FIXME We should actually negotiate this, in the future */
+	a = janus_sdp_attribute_create("extmap-allow-mixed", NULL);
+	anon->attributes = g_list_insert_before(anon->attributes, first, a);
 	/* msid-semantic: add new global attribute */
 	a = janus_sdp_attribute_create("msid-semantic", " WMS janus");
 	anon->attributes = g_list_insert_before(anon->attributes, first, a);
