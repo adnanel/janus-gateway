@@ -5030,7 +5030,12 @@ void janus_sip_sofia_callback(nua_event_t event, int status, char const *phrase,
 			JANUS_LOG(LOG_VERB, "[%s][%s]: %d %s\n", session->account.username, nua_event_name(event), status, phrase ? phrase : "??");
 			break;
 		case nua_i_bye: {
-			JANUS_LOG(LOG_VERB, "[%s][%s]: %d %s\n", session->account.username, nua_event_name(event), status, phrase ? phrase : "??");
+			JANUS_LOG(LOG_VERB, "[%s][%s]: %d %s SIP REASON %d, SIP REASON HEADER %d (%s)\n",
+					  session->account.username, nua_event_name(event), status, phrase ? phrase : "??",
+					  sip->sip_reason ? 1 : 0,
+					  sip->sip_reason->re_text ? 1 : 0,
+					  sip->sip_reason->re_text ? sip->sip_reason->re_text : "",
+			  );
 			if(sip->sip_reason && sip->sip_reason->re_text) {
 				session->hangup_reason_header = g_strdup(sip->sip_reason->re_text);
 				janus_sip_remove_quotes(session->hangup_reason_header);
