@@ -5036,7 +5036,7 @@ void janus_sip_sofia_callback(nua_event_t event, int status, char const *phrase,
 					  sip->sip_reason->re_text ? 1 : 0,
 					  sip->sip_reason->re_text ? sip->sip_reason->re_text : "",
 					  sip->sip_reason->re_cause ? sip->sip_reason->re_cause : "",
-					  sip->sip_reason->re_next ? sip->sip_reason->re_next : "",
+					  sip->sip_reason->re_next ? sip->sip_reason->re_next : ""
 			  );
 			if(sip->sip_reason && sip->sip_reason->re_text) {
 				session->hangup_reason_header = g_strdup(sip->sip_reason->re_text);
