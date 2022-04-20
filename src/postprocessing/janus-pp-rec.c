@@ -1233,6 +1233,7 @@ int main(int argc, char *argv[]) {
 		JANUS_LOG(LOG_INFO, "Parsing and reordering completed, bye!\n");
 		g_free(metadata);
 		g_free(extension);
+		*extension = 5;
 		janus_pprec_options_destroy();
 		exit(0);
 	}
