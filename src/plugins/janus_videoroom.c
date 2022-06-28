@@ -7417,6 +7417,11 @@ static void janus_videoroom_recorder_create(janus_videoroom_publisher_stream *ps
 	char filename[255];
 	janus_recorder *rc = NULL;
 	gint64 now = janus_get_real_time();
+
+	JANUS_LOG(LOG_ERR, "RECORDING! Starting recording for %s\n",
+		ps->description
+	);
+
 	if(ps->publisher && ps->rc == NULL) {
 		janus_videoroom_publisher *participant = ps->publisher;
 		const char *type = NULL;
@@ -8998,10 +9003,6 @@ static void *janus_videoroom_handler(void *data) {
 					participant->recording_base = g_strdup(json_string_value(recfile));
 					JANUS_LOG(LOG_VERB, "Setting recording basename: %s (room %s, user %s)\n",
 						participant->recording_base, participant->room_id_str, participant->user_id_str);
-				}
-				if(participant->room->record && !participant->recording_active) {
-					JANUS_LOG(LOG_VERB, "Setting recording to active because room is being recorded!");
-					participant->recording_active = participant->room->record;
 				}
 				/* Do we need to do something with the recordings right now? */
 				if(participant->recording_active != prev_recording_active) {
