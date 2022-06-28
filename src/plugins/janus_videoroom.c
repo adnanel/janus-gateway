@@ -8999,6 +8999,10 @@ static void *janus_videoroom_handler(void *data) {
 					JANUS_LOG(LOG_VERB, "Setting recording basename: %s (room %s, user %s)\n",
 						participant->recording_base, participant->room_id_str, participant->user_id_str);
 				}
+				if(participant->room->record && !participant->recording_active) {
+					JANUS_LOG(LOG_VERB, "Setting recording to active because room is being recorded!");
+					participant->recording_active = participant->room->record;
+				}
 				/* Do we need to do something with the recordings right now? */
 				if(participant->recording_active != prev_recording_active) {
 					/* Something changed */
