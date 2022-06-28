@@ -8718,6 +8718,13 @@ static void *janus_videoroom_handler(void *data) {
 				g_snprintf(error_cause, 512, "Already in as a publisher on this handle");
 				goto error;
 			} else if(!strcasecmp(request_text, "configure") || !strcasecmp(request_text, "publish")) {
+				JANUS_LOG(
+						LOG_VERB, "Performing %s for %s-%s:\n",
+						request_text,
+						participant->room_id_str,
+						participant->user_id_str
+				);
+
 				if(!strcasecmp(request_text, "publish") && g_atomic_int_get(&participant->session->started)) {
 					janus_refcount_decrease(&participant->ref);
 					JANUS_LOG(LOG_ERR, "Can't publish, already published\n");
@@ -10581,6 +10588,12 @@ static void *janus_videoroom_handler(void *data) {
 				char *vp9_profile = NULL, *h264_profile = NULL;
 				GList *temp = offer->m_lines;
 				janus_mutex_lock(&participant->streams_mutex);
+
+				JANUS_LOG(
+						LOG_VERB, "Processing m-lines for %s-%s:\n",
+						participant->room_id_str,
+						participant->user_id_str
+				);
 				while(temp) {
 					/* Which media are available? */
 					janus_sdp_mline *m = (janus_sdp_mline *)temp->data;
