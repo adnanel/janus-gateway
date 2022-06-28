@@ -6644,8 +6644,14 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 					janus_mutex_lock(&participant->rec_mutex);
 					gboolean prev_recording_active = participant->recording_active;
 					participant->recording_active = recording_active;
-					JANUS_LOG(LOG_VERB, "Setting record property: %s (room %s, user %s)\n",
-						participant->recording_active ? "true" : "false", participant->room_id_str, participant->user_id_str);
+					JANUS_LOG(LOG_VERB, "Setting record property: %s (room %s, user %s) [%s, %s, %d]\n",
+						participant->recording_active ? "true" : "false",
+						participant->room_id_str,
+						participant->user_id_str,
+						prev_recording_active ? "true" : "false",
+						participant->recording_active ? "true" : "false",
+					    g_atomic_int_get(&participant->session->started)
+					);
 					/* Do we need to do something with the recordings right now? */
 					if(participant->recording_active != prev_recording_active) {
 						/* Something changed */
