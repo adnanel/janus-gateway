@@ -2250,7 +2250,7 @@ typedef struct janus_videoroom_rtp_relay_packet {
 } janus_videoroom_rtp_relay_packet;
 
 /* Start / stop recording */
-static void janus_videoroom_recorder_create(janus_videoroom_publisher_stream *ps);
+static void janus_videoroom_recorder_create(janus_videoroom_publisher*, janus_videoroom_publisher_stream *ps);
 static void janus_videoroom_recorder_close(janus_videoroom_publisher *participant);
 
 /* Freeing stuff */
@@ -6663,7 +6663,7 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 							GList *temp = participant->streams;
 							while(temp) {
 								janus_videoroom_publisher_stream *ps = (janus_videoroom_publisher_stream *)temp->data;
-								janus_videoroom_recorder_create(ps);
+								janus_videoroom_recorder_create(participant, ps);
 								if(ps->type == JANUS_VIDEOROOM_MEDIA_VIDEO) {
 									/* Send a PLI */
 									janus_videoroom_reqpli(ps, "Recording video");
@@ -6675,6 +6675,8 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 					janus_mutex_unlock(&participant->rec_mutex);
 				}
 			}
+		} else {
+			JANUS_LOG(LOG_VERB, "Ignoring enable_recording because recording is already running!\n");
 		}
 		janus_mutex_unlock(&videoroom->mutex);
 		janus_refcount_decrease(&videoroom->ref);
@@ -7413,13 +7415,15 @@ void janus_videoroom_slow_link(janus_plugin_session *handle, int mindex, gboolea
 	janus_refcount_decrease(&session->ref);
 }
 
-static void janus_videoroom_recorder_create(janus_videoroom_publisher_stream *ps) {
+static void janus_videoroom_recorder_create(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream *ps) {
 	char filename[255];
 	janus_recorder *rc = NULL;
 	gint64 now = janus_get_real_time();
 
-	JANUS_LOG(LOG_ERR, "RECORDING! Starting recording for %s\n",
-		ps->description
+	JANUS_LOG(LOG_ERR, "RECORDING! Starting recording for %s %s %s\n",
+		ps->description,
+	    participant->room_id_str,
+		participant->user_id_str
 	);
 
 	if(ps->publisher && ps->rc == NULL) {
@@ -9015,7 +9019,7 @@ static void *janus_videoroom_handler(void *data) {
 						GList *temp = participant->streams;
 						while(temp) {
 							janus_videoroom_publisher_stream *ps = (janus_videoroom_publisher_stream *)temp->data;
-							janus_videoroom_recorder_create(ps);
+							janus_videoroom_recorder_create(participant, ps);
 							if(ps->type == JANUS_VIDEOROOM_MEDIA_VIDEO) {
 								/* Send a PLI */
 								janus_videoroom_reqpli(ps, "Recording video");
@@ -10949,7 +10953,7 @@ static void *janus_videoroom_handler(void *data) {
 					GList *temp = participant->streams;
 					while(temp) {
 						janus_videoroom_publisher_stream *ps = (janus_videoroom_publisher_stream *)temp->data;
-						janus_videoroom_recorder_create(ps);
+						janus_videoroom_recorder_create(participant, ps);
 						temp = temp->next;
 					}
 					participant->recording_active = TRUE;
