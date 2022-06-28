@@ -6653,13 +6653,15 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 					    g_atomic_int_get(&participant->session->started)
 					);
 					/* Do we need to do something with the recordings right now? */
-					if(participant->recording_active != prev_recording_active) {
+					if(recording_active != prev_recording_active) {
 						/* Something changed */
-						if(!participant->recording_active) {
+						if(!recording_active) {
 							/* Not recording (anymore?) */
+							participant->recording_active = FALSE;
 							janus_videoroom_recorder_close(participant);
 						} else if(participant->recording_active && g_atomic_int_get(&participant->session->started)) {
 							/* We've started recording, send a PLI and go on */
+							participant->recording_active = TRUE;
 							GList *temp = participant->streams;
 							while(temp) {
 								janus_videoroom_publisher_stream *ps = (janus_videoroom_publisher_stream *)temp->data;
@@ -10957,6 +10959,12 @@ static void *janus_videoroom_handler(void *data) {
 						temp = temp->next;
 					}
 					participant->recording_active = TRUE;
+				} else {
+					JANUS_LOG(
+							LOG_VERB, "Not starting recording, reason 1 for %s-%s:\n",
+							participant->room_id_str,
+							participant->user_id_str
+				    );
 				}
 				janus_mutex_unlock(&participant->rec_mutex);
 				/* Send the answer back to the publisher */
