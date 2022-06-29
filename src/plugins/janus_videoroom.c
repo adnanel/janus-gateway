@@ -6631,6 +6631,10 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 		janus_mutex_lock(&videoroom->mutex);
 		/* Set recording status */
 		gboolean room_prev_recording_active = recording_active;
+		JANUS_LOG(LOG_VERB, "Changing room recording from %s to %s\n",
+				  room_prev_recording_active ? "true" : "false",
+				  videoroom->record ? "true" : "false"
+		);
 		if (room_prev_recording_active != videoroom->record) {
 			/* Room recording state has changed */
 			videoroom->record = room_prev_recording_active;
@@ -6640,6 +6644,19 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 			g_hash_table_iter_init(&iter, videoroom->participants);
 			while (g_hash_table_iter_next(&iter, NULL, &value)) {
 				janus_videoroom_publisher *participant = value;
+				if (participant) {
+					JANUS_LOG(LOG_VERB, "Setting record property: %s (room %s, user %s) [%s, %s, %d]\n",
+							  participant->recording_active ? "true" : "false",
+							  participant->room_id_str,
+							  participant->user_id_str,
+							  prev_recording_active ? "true" : "false",
+							  participant->recording_active ? "true" : "false",
+							  g_atomic_int_get(&participant->session->started)
+					);
+				} else {
+					JANUS_LOG(LOG_VERB, "Found a null participant???\n");
+				}
+
 				if(participant && participant->session) {
 					janus_mutex_lock(&participant->rec_mutex);
 					gboolean prev_recording_active = participant->recording_active;
@@ -10964,6 +10981,14 @@ static void *janus_videoroom_handler(void *data) {
 				json_object_set_new(event, "streams", media);
 				/* Is this room recorded, or are we recording this publisher already? */
 				janus_mutex_lock(&participant->rec_mutex);
+				JANUS_LOG(
+						LOG_VERB, "Recording bla bla... %s-%s %s %s:\n",
+						participant->room_id_str,
+						participant->user_id_str,
+						videoroom->record ? "true" : "false",
+						participant->recording_active ? "true" : "false"
+				);
+
 				if(videoroom->record || participant->recording_active) {
 					GList *temp = participant->streams;
 					while(temp) {
