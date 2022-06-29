@@ -275,7 +275,7 @@ char *janus_string_replace(char *message, const char *old_string, const char *ne
 size_t janus_strlcat(char *dest, const char *src, size_t dest_size) {
 	size_t ret = g_strlcat(dest, src, dest_size);
 	if(ret >= dest_size)
-		JANUS_LOG(LOG_ERR, "Truncation occurred, %lu >= %lu (%s)\n", ret, dest_size, dest);
+		JANUS_LOG(LOG_ERR, "Truncation occurred, %lu >= %lu (%s)\n", ret, dest_size, src);
 	return ret;
 }
 
