@@ -6682,7 +6682,7 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 							GList *temp = participant->streams;
 							while(temp) {
 								janus_videoroom_publisher_stream *ps = (janus_videoroom_publisher_stream *)temp->data;
-								janus_vijanus_videoroom_recorder_createdeoroom_recorder_create(participant, ps);
+								janus_videoroom_recorder_create(participant, ps);
 								if(ps->type == JANUS_VIDEOROOM_MEDIA_VIDEO) {
 									/* Send a PLI */
 									janus_videoroom_reqpli(ps, "Recording video");
