@@ -6649,7 +6649,7 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 							  participant->recording_active ? "true" : "false",
 							  participant->room_id_str,
 							  participant->user_id_str,
-							  prev_recording_active ? "true" : "false",
+							  recording_active ? "true" : "false",
 							  participant->recording_active ? "true" : "false",
 							  g_atomic_int_get(&participant->session->started)
 					);
