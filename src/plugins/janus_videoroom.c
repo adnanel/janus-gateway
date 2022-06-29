@@ -6895,7 +6895,7 @@ void janus_videoroom_setup_media(janus_plugin_session *handle) {
 			janus_videoroom_notify_about_publisher(participant, FALSE);
 			janus_refcount_decrease(&participant->ref);
 			if(participant->room->record) {
-				GList *temp = session->participant->streams;
+				GList *temp = participant->streams;
 				while(temp) {
 					janus_videoroom_publisher_stream *ps = (janus_videoroom_publisher_stream *)temp->data;
 					janus_videoroom_recorder_create(participant, ps);
