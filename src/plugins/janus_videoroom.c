@@ -6682,7 +6682,7 @@ static json_t *janus_videoroom_process_synchronous_request(janus_videoroom_sessi
 							GList *temp = participant->streams;
 							while(temp) {
 								janus_videoroom_publisher_stream *ps = (janus_videoroom_publisher_stream *)temp->data;
-								janus_videoroom_recorder_create(participant, ps);
+								janus_vijanus_videoroom_recorder_createdeoroom_recorder_create(participant, ps);
 								if(ps->type == JANUS_VIDEOROOM_MEDIA_VIDEO) {
 									/* Send a PLI */
 									janus_videoroom_reqpli(ps, "Recording video");
@@ -6894,6 +6894,15 @@ void janus_videoroom_setup_media(janus_plugin_session *handle) {
 			/* Notify all other participants that there's a new boy in town */
 			janus_videoroom_notify_about_publisher(participant, FALSE);
 			janus_refcount_decrease(&participant->ref);
+			if(participant->room->record) {
+				GList *temp = session->participant->streams;
+				while(temp) {
+					janus_videoroom_publisher_stream *ps = (janus_videoroom_publisher_stream *)temp->data;
+					janus_videoroom_recorder_create(participant, ps);
+					temp = temp->next;
+				}
+				participant->recording_active = TRUE;
+			}
 		} else if(session->participant_type == janus_videoroom_p_type_subscriber) {
 			janus_videoroom_subscriber *s = janus_videoroom_session_get_subscriber(session);
 			if(s && s->streams) {
