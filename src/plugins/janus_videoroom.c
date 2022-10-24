@@ -4022,7 +4022,7 @@ const char *janus_videoroom_get_author(void) {
 const char *janus_videoroom_get_package(void) {
 	return JANUS_VIDEOROOM_PACKAGE;
 }
-void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, char* tag, const bool* flags, int flags_cnt);
+void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, const char* tag, const bool* flags, int flags_cnt);
 
 static janus_videoroom_session *janus_videoroom_lookup_session(janus_plugin_session *handle) {
 	janus_videoroom_session *session = NULL;
@@ -8470,7 +8470,7 @@ static void janus_videoroom_incoming_rtp_internal(janus_videoroom_session *sessi
 		/* Set the payload type of the publisher */
 		rtp->type = ps->pt;
 		/* Save the frame if we're recording */
-		print_debug(participant, ps, "simulcast check", { !video, !ps->simulcast, ps, ps->publisher }, 4);
+		print_debug(participant, ps, "simulcast check", [ !video, !ps->simulcast, ps, ps->publisher ], 4);
 		if(!video || !ps->simulcast) {
             if (ps->rc) {
                 JANUS_LOG(LOG_INFO, "\n1. Janus recorder - name: %s - desc: %s - codec: %s\n", ps->rc->filename,
@@ -8633,7 +8633,7 @@ static void janus_videoroom_incoming_rtp_internal(janus_videoroom_session *sessi
 	janus_videoroom_publisher_dereference_nodebug(participant);
 }
 
-void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, char* tag, const bool* flags, int flags_cnt) {
+void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, const char* tag, const bool* flags, int flags_cnt) {
 	char flags_str[4 * 1024];
 	for (int i = 0; i < flags_cnt; ++ i) {
 		flags_str[i] = '0' + flags[i];
@@ -8732,7 +8732,7 @@ static void janus_videoroom_incoming_data_internal(janus_videoroom_session *sess
 	janus_mutex_lock(&participant->streams_mutex);
 	janus_videoroom_publisher_stream *ps = g_hash_table_lookup(participant->streams_byid, GINT_TO_POINTER(participant->data_mindex));
 	janus_mutex_unlock(&participant->streams_mutex);
-	print_debug(participant, ps, "incoming data", { ps == NULL, !ps->active, ps->muted }, 3);
+	print_debug(participant, ps, "incoming data", [ ps == NULL, !ps->active, ps->muted ], 3);
 	if(ps == NULL || !ps->active || ps->muted) {
 		/* No or inactive stream..? */
 		janus_videoroom_publisher_dereference_nodebug(participant);
