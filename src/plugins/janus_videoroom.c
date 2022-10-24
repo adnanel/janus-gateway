@@ -1552,7 +1552,6 @@ void janus_videoroom_slow_link(janus_plugin_session *handle, int mindex, gboolea
 void janus_videoroom_hangup_media(janus_plugin_session *handle);
 void janus_videoroom_destroy_session(janus_plugin_session *handle, int *error);
 json_t *janus_videoroom_query_session(janus_plugin_session *handle);
-void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, char* tag, const bool* flags, int flags_cnt);
 
 /* Plugin setup */
 static janus_plugin janus_videoroom_plugin =
@@ -4023,6 +4022,7 @@ const char *janus_videoroom_get_author(void) {
 const char *janus_videoroom_get_package(void) {
 	return JANUS_VIDEOROOM_PACKAGE;
 }
+void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, char* tag, const bool* flags, int flags_cnt);
 
 static janus_videoroom_session *janus_videoroom_lookup_session(janus_plugin_session *handle) {
 	janus_videoroom_session *session = NULL;
