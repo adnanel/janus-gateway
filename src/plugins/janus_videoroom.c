@@ -8633,7 +8633,7 @@ static void janus_videoroom_incoming_rtp_internal(janus_videoroom_session *sessi
 	janus_videoroom_publisher_dereference_nodebug(participant);
 }
 
-void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, const char* tag, const bool* flags, int flags_cnt) {
+void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, const char* tag, const int* flags, int flags_cnt) {
 	char flags_str[4 * 1024];
 	for (int i = 0; i < flags_cnt; ++ i) {
 		flags_str[i] = '0' + flags[i];
