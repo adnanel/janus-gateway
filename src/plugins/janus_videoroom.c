@@ -4022,7 +4022,7 @@ const char *janus_videoroom_get_author(void) {
 const char *janus_videoroom_get_package(void) {
 	return JANUS_VIDEOROOM_PACKAGE;
 }
-void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, const char* tag, const bool* flags, int flags_cnt);
+void print_debug(janus_videoroom_publisher* participant, janus_videoroom_publisher_stream* ps, const char* tag, const int* flags, int flags_cnt);
 
 static janus_videoroom_session *janus_videoroom_lookup_session(janus_plugin_session *handle) {
 	janus_videoroom_session *session = NULL;
