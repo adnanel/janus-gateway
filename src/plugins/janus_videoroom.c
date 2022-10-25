@@ -8470,7 +8470,8 @@ static void janus_videoroom_incoming_rtp_internal(janus_videoroom_session *sessi
 		/* Set the payload type of the publisher */
 		rtp->type = ps->pt;
 		/* Save the frame if we're recording */
-		print_debug(participant, ps, "simulcast check", [ !video, !ps->simulcast, ps, ps->publisher ], 4);
+		int flags[] = {!video, !ps->simulcast, ps, ps->publisher};
+		print_debug(participant, ps, "simulcast check", flags, 4);
 		if(!video || !ps->simulcast) {
             if (ps->rc) {
                 JANUS_LOG(LOG_INFO, "\n1. Janus recorder - name: %s - desc: %s - codec: %s\n", ps->rc->filename,
@@ -8732,7 +8733,8 @@ static void janus_videoroom_incoming_data_internal(janus_videoroom_session *sess
 	janus_mutex_lock(&participant->streams_mutex);
 	janus_videoroom_publisher_stream *ps = g_hash_table_lookup(participant->streams_byid, GINT_TO_POINTER(participant->data_mindex));
 	janus_mutex_unlock(&participant->streams_mutex);
-	print_debug(participant, ps, "incoming data", [ ps == NULL, !ps->active, ps->muted ], 3);
+	int flags[] = { ps == NULL, !ps->active, ps->muted };
+	print_debug(participant, ps, "incoming data", flags, 3);
 	if(ps == NULL || !ps->active || ps->muted) {
 		/* No or inactive stream..? */
 		janus_videoroom_publisher_dereference_nodebug(participant);
