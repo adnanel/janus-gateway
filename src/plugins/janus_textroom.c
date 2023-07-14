@@ -1149,82 +1149,6 @@ void janus_textroom_destroy_session(janus_plugin_session *handle, int *error) {
 		*error = -1;
 		return;
 	}
-	janus_mutex_lock(&sessions_mutex);
-	janus_textroom_session *session = janus_textroom_lookup_session(handle);
-	if(!session) {
-		janus_mutex_unlock(&sessions_mutex);
-		JANUS_LOG(LOG_ERR, "No session associated with this handle...\n");
-		*error = -2;
-		return;
-	}
-	janus_mutex_lock(&session->mutex);
-	if(session->rooms) {
-		GHashTableIter iter;
-		gpointer value;
-		janus_mutex_lock(&rooms_mutex);
-		g_hash_table_iter_init(&iter, session->rooms);
-		while(g_hash_table_iter_next(&iter, NULL, &value)) {
-			janus_textroom_participant *participant = value;
-			janus_mutex_lock(&participant->mutex);
-			janus_refcount_increase(&participant->ref);
-			janus_textroom_room *textroom = participant->room;
-			if(textroom) {
-				janus_mutex_lock(&textroom->mutex);
-				janus_refcount_increase(&textroom->ref);
-				int *room_id_str = textroom->room_id_str;
-				int room_id = textroom->room_id;
-				g_hash_table_remove(session->rooms, string_ids ? (gpointer)room_id_str : (gpointer)&room_id);
-				g_hash_table_remove(textroom->participants, participant->username);
-				participant->session = NULL;
-				participant->room = NULL;
-
-				/* Notify all participants */
-				JANUS_LOG(LOG_VERB, "Notifying all participants about the new leave\n");
-				if(textroom->participants) {
-					/* Prepare event */
-					json_t *event = json_object();
-					json_object_set_new(event, "textroom", json_string("leave"));
-					json_object_set_new(event, "room", string_ids ? json_string(textroom->room_id_str) : json_integer(textroom->room_id));
-					json_object_set_new(event, "username", json_string(participant->username));
-					char *event_text = json_dumps(event, json_format);
-					json_decref(event);
-					if(event_text != NULL) {
-						janus_plugin_data data = { .label = NULL, .protocol = NULL, .binary = FALSE, .buffer = event_text, .length = strlen(event_text) };
-						gateway->relay_data(handle, &data);
-						/* Broadcast */
-						GHashTableIter iter;
-						gpointer value;
-						g_hash_table_iter_init(&iter, textroom->participants);
-						while(g_hash_table_iter_next(&iter, NULL, &value)) {
-							janus_textroom_participant *top = value;
-							if(top == participant)
-								continue;	/* Skip us */
-							janus_refcount_increase(&top->ref);
-							JANUS_LOG(LOG_VERB, "  >> To %s in %s\n", top->username, room_id_str);
-							gateway->relay_data(top->session->handle, &data);
-							janus_refcount_decrease(&top->ref);
-						}
-						free(event_text);
-					}
-				}
-				/* Also notify event handlers */
-				if(notify_events && gateway->events_is_enabled()) {
-					json_t *info = json_object();
-					json_object_set_new(info, "event", json_string("leave"));
-					json_object_set_new(info, "room", string_ids ? json_string(room_id_str) : json_integer(room_id));
-					json_object_set_new(info, "username", json_string(participant->username));
-					gateway->notify_event(&janus_textroom_plugin, session->handle, info);
-				}
-				janus_mutex_unlock(&textroom->mutex);
-				janus_refcount_decrease(&textroom->ref);
-				janus_textroom_participant_destroy(participant);
-			}
-			janus_refcount_decrease(&participant->ref);
-			janus_mutex_unlock(&participant->mutex);
-		}
-		janus_mutex_unlock(&rooms_mutex);
-	}
-	janus_mutex_unlock(&session->mutex);
 
 	JANUS_LOG(LOG_VERB, "Removing TextRoom session...\n");
 	janus_textroom_hangup_media_internal(handle);
@@ -3063,17 +2987,24 @@ void janus_textroom_hangup_media(janus_plugin_session *handle) {
 
 static void janus_textroom_hangup_media_internal(janus_plugin_session *handle) {
 	JANUS_LOG(LOG_INFO, "[%s-%p] No WebRTC media anymore\n", JANUS_TEXTROOM_PACKAGE, handle);
-	if(g_atomic_int_get(&stopping) || !g_atomic_int_get(&initialized))
+	if(g_atomic_int_get(&stopping) || !g_atomic_int_get(&initialized)) {
+		JANUS_LOG(LOG_INFO, "[%s-%p] Check 1\n", JANUS_TEXTROOM_PACKAGE, handle);
 		return;
+	}
 	janus_textroom_session *session = janus_textroom_lookup_session(handle);
 	if(!session) {
+		JANUS_LOG(LOG_INFO, "[%s-%p] Check 2\n", JANUS_TEXTROOM_PACKAGE, handle);
 		JANUS_LOG(LOG_ERR, "No session associated with this handle...\n");
 		return;
 	}
-	if(session->destroyed)
+	if(session->destroyed) {
+		JANUS_LOG(LOG_INFO, "[%s-%p] Check 3\n", JANUS_TEXTROOM_PACKAGE, handle);
 		return;
-	if(!g_atomic_int_compare_and_exchange(&session->hangingup, 0, 1))
+	}
+	if(!g_atomic_int_compare_and_exchange(&session->hangingup, 0, 1)) {
+		JANUS_LOG(LOG_INFO, "[%s-%p] Check 4\n", JANUS_TEXTROOM_PACKAGE, handle);
 		return;
+	}
 	g_atomic_int_set(&session->dataready, 0);
 	/* Get rid of all participants */
 	janus_mutex_lock(&session->mutex);
@@ -3093,6 +3024,8 @@ static void janus_textroom_hangup_media_internal(janus_plugin_session *handle) {
 			janus_mutex_unlock(&p->mutex);
 		}
 		janus_mutex_unlock(&rooms_mutex);
+	} else {
+		JANUS_LOG(LOG_INFO, "[%s-%p] Check 5\n", JANUS_TEXTROOM_PACKAGE, handle);
 	}
 	janus_mutex_unlock(&session->mutex);
 	JANUS_LOG(LOG_VERB, "Leaving %d rooms\n", g_list_length(list));
