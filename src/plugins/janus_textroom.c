@@ -3017,14 +3017,17 @@ static void janus_textroom_hangup_media_internal(janus_plugin_session *handle) {
 	janus_mutex_lock(&session->mutex);
 	GList *list = NULL;
 	if(session->rooms) {
+		JANUS_LOG(LOG_INFO, "[%s-%p] Check 7\n", JANUS_TEXTROOM_PACKAGE, handle);
 		GHashTableIter iter;
 		gpointer value;
 		janus_mutex_lock(&rooms_mutex);
 		g_hash_table_iter_init(&iter, session->rooms);
 		while(g_hash_table_iter_next(&iter, NULL, &value)) {
+			JANUS_LOG(LOG_INFO, "[%s-%p] Check 8\n", JANUS_TEXTROOM_PACKAGE, handle);
 			janus_textroom_participant *p = value;
 			janus_mutex_lock(&p->mutex);
 			if(p->room) {
+				JANUS_LOG(LOG_INFO, "[%s-%p] Check 9\n", JANUS_TEXTROOM_PACKAGE, handle);
 				list = g_list_append(list, string_ids ?
 					(gpointer)g_strdup(p->room->room_id_str) : (gpointer)janus_uint64_dup(p->room->room_id));
 			}
@@ -3039,6 +3042,7 @@ static void janus_textroom_hangup_media_internal(janus_plugin_session *handle) {
 	char request[100];
 	GList *first = list;
 	while(list) {
+		JANUS_LOG(LOG_INFO, "[%s-%p] Check 10\n", JANUS_TEXTROOM_PACKAGE, handle);
 		char *room_id_str = (char *)list->data;
 		if(string_ids) {
 			g_snprintf(request, sizeof(request), "{\"textroom\":\"leave\",\"transaction\":\"internal\",\"room\":\"%s\"}", room_id_str);
@@ -3051,6 +3055,7 @@ static void janus_textroom_hangup_media_internal(janus_plugin_session *handle) {
 	}
 	g_list_free_full(first, (GDestroyNotify)g_free);
 	g_atomic_int_set(&session->hangingup, 0);
+	JANUS_LOG(LOG_INFO, "[%s-%p] Check FINAL\n", JANUS_TEXTROOM_PACKAGE, handle);
 }
 
 /* Thread to handle incoming messages */
