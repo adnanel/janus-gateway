@@ -1149,7 +1149,14 @@ void janus_textroom_destroy_session(janus_plugin_session *handle, int *error) {
 		*error = -1;
 		return;
 	}
-
+	janus_mutex_lock(&sessions_mutex);
+	janus_textroom_session *session = janus_textroom_lookup_session(handle);
+	if(!session) {
+		janus_mutex_unlock(&sessions_mutex);
+		JANUS_LOG(LOG_ERR, "No session associated with this handle...\n");
+		*error = -2;
+		return;
+	}
 	JANUS_LOG(LOG_VERB, "Removing TextRoom session...\n");
 	janus_textroom_hangup_media_internal(handle);
 	g_hash_table_remove(sessions, handle);
