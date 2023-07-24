@@ -3050,6 +3050,7 @@ static void janus_textroom_hangup_media_internal(janus_plugin_session *handle) {
 			guint64 room_id = *(guint64 *)room_id_str;
 			g_snprintf(request, sizeof(request), "{\"textroom\":\"leave\",\"transaction\":\"internal\",\"room\":%"SCNu64"}", room_id);
 		}
+		JANUS_LOG(LOG_INFO, ">%s< OMG\n", request);
 		janus_textroom_handle_incoming_request(handle, g_strdup(request), NULL, TRUE);
 		list = list->next;
 	}
