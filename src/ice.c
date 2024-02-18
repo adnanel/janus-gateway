@@ -1101,7 +1101,7 @@ int janus_ice_test_stun_server(janus_network_address *addr, uint16_t port,
 		return -1;
 	/* Test the STUN server */
 	StunAgent stun;
-	stun_agent_init (&stun, STUN_ALL_KNOWN_ATTRIBUTES, STUN_COMPATIBILITY_RFC5389, 0);
+	stun_agent_init (&stun, STUN_ALL_KNOWN_ATTRIBUTES, STUN_COMPATIBILITY_MSICE2, 0);
 	StunMessage msg;
 	uint8_t buf[1500];
 	size_t len = stun_usage_bind_create(&stun, &msg, buf, 1500);
@@ -3611,7 +3611,7 @@ int janus_ice_setup_local(janus_ice_handle *handle, gboolean offer, gboolean tri
 		"reliable", FALSE,
 		"full-mode", janus_ice_lite_enabled ? FALSE : TRUE,
 #ifdef HAVE_ICE_NOMINATION
-		"nomination-mode", NICE_NOMINATION_MODE_AGGRESSIVE, // janus_ice_nomination,
+		"nomination-mode", janus_ice_nomination,
 #endif
 #ifdef HAVE_CONSENT_FRESHNESS
 		"consent-freshness", janus_ice_consent_freshness ? TRUE : FALSE,
@@ -3638,7 +3638,7 @@ int janus_ice_setup_local(janus_ice_handle *handle, gboolean offer, gboolean tri
 	/* When using the TURN REST API, we use the handle's opaque_id as a username
 	 * by default, and fall back to the session_id when it's missing. Refer to this
 	 * issue for more context: https://github.com/meetecho/janus-gateway/issues/2199 */
-	char turnrest_username[40];
+	char turnrest_username[20];
 	if(handle->opaque_id == NULL) {
 		janus_session *session = (janus_session *)handle->session;
 		g_snprintf(turnrest_username, sizeof(turnrest_username), "%"SCNu64, session->session_id);
