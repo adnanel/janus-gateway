@@ -3602,11 +3602,11 @@ int janus_ice_setup_local(janus_ice_handle *handle, gboolean offer, gboolean tri
 	janus_flags_clear(&handle->webrtc_flags, JANUS_ICE_HANDLE_WEBRTC_TRICKLE_SYNCED);
 
 	/* Note: NICE_COMPATIBILITY_RFC5245 is only available in more recent versions of libnice */
-	handle->controlling = TRUE; // TODO janus_ice_lite_enabled ? FALSE : !offer;
+	handle->controlling = janus_ice_lite_enabled ? FALSE : !offer;
 	JANUS_LOG(LOG_INFO, "[%"SCNu64"] Creating ICE agent (ICE %s mode, %s)\n", handle->handle_id,
 		janus_ice_lite_enabled ? "Lite" : "Full", handle->controlling ? "controlling" : "controlled");
 	handle->agent = g_object_new(NICE_TYPE_AGENT,
-		"compatibility", NICE_COMPATIBILITY_RFC5245,
+		"compatibility", STUN_COMPATIBILITY_MSICE2,
 		"main-context", handle->mainctx,
 		"reliable", FALSE,
 		"full-mode", janus_ice_lite_enabled ? FALSE : TRUE,
