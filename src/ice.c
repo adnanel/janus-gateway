@@ -3608,7 +3608,7 @@ int janus_ice_setup_local(janus_ice_handle *handle, gboolean offer, gboolean tri
 	handle->agent = g_object_new(NICE_TYPE_AGENT,
 		"compatibility", NICE_COMPATIBILITY_RFC5245,
 		"main-context", handle->mainctx,
-		"reliable", TRUE,
+		"reliable", FALSE,
 		"full-mode", janus_ice_lite_enabled ? FALSE : TRUE,
 #ifdef HAVE_ICE_NOMINATION
 		"nomination-mode", NICE_NOMINATION_MODE_AGGRESSIVE, // janus_ice_nomination,
