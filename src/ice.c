@@ -1058,7 +1058,7 @@ void janus_ice_init(gboolean ice_lite, gboolean ice_tcp, gboolean full_trickle, 
 #endif
 	}
 	/* libnice debugging is disabled unless explicitly stated */
-	nice_debug_disable(TRUE);
+	// nice_debug_disable(TRUE);
 
 	/*! \note The RTP/RTCP port range configuration may be just a placeholder: for
 	 * instance, libnice supports this since 0.1.0, but the 0.1.3 on Fedora fails
@@ -1101,7 +1101,7 @@ int janus_ice_test_stun_server(janus_network_address *addr, uint16_t port,
 		return -1;
 	/* Test the STUN server */
 	StunAgent stun;
-	stun_agent_init (&stun, STUN_ALL_KNOWN_ATTRIBUTES, STUN_COMPATIBILITY_LAST, 0);
+	stun_agent_init (&stun, STUN_ALL_KNOWN_ATTRIBUTES, STUN_COMPATIBILITY_RFC5389, 0);
 	StunMessage msg;
 	uint8_t buf[1500];
 	size_t len = stun_usage_bind_create(&stun, &msg, buf, 1500);
