@@ -3606,12 +3606,12 @@ int janus_ice_setup_local(janus_ice_handle *handle, gboolean offer, gboolean tri
 	JANUS_LOG(LOG_INFO, "[%"SCNu64"] Creating ICE agent (ICE %s mode, %s)\n", handle->handle_id,
 		janus_ice_lite_enabled ? "Lite" : "Full", handle->controlling ? "controlling" : "controlled");
 	handle->agent = g_object_new(NICE_TYPE_AGENT,
-		"compatibility", STUN_COMPATIBILITY_MSICE2,
+		"compatibility", NICE_COMPATIBILITY_RFC5245,
 		"main-context", handle->mainctx,
-		"reliable", FALSE,
+		"reliable", TRUE,
 		"full-mode", janus_ice_lite_enabled ? FALSE : TRUE,
 #ifdef HAVE_ICE_NOMINATION
-		"nomination-mode", janus_ice_nomination,
+		"nomination-mode", NICE_NOMINATION_MODE_AGGRESSIVE, // janus_ice_nomination,
 #endif
 #ifdef HAVE_CONSENT_FRESHNESS
 		"consent-freshness", janus_ice_consent_freshness ? TRUE : FALSE,
@@ -3638,7 +3638,7 @@ int janus_ice_setup_local(janus_ice_handle *handle, gboolean offer, gboolean tri
 	/* When using the TURN REST API, we use the handle's opaque_id as a username
 	 * by default, and fall back to the session_id when it's missing. Refer to this
 	 * issue for more context: https://github.com/meetecho/janus-gateway/issues/2199 */
-	char turnrest_username[20];
+	char turnrest_username[40];
 	if(handle->opaque_id == NULL) {
 		janus_session *session = (janus_session *)handle->session;
 		g_snprintf(turnrest_username, sizeof(turnrest_username), "%"SCNu64, session->session_id);
