@@ -4151,7 +4151,6 @@ static void *janus_sip_handler(void *data) {
 			if(error_code != 0)
 				goto error;
 
-			gboolean answer = TRUE;
 			if (!g_atomic_int_get(&session->preaccepted)) {
 				JANUS_LOG(LOG_INFO, "Call was not in preaccepted earlier, doing media related work now...\n");
 				json_t *srtp = json_object_get(root, "srtp");
@@ -4204,7 +4203,7 @@ static void *janus_sip_handler(void *data) {
 				}
 				/* Accept a call from another peer */
 				JANUS_LOG(LOG_VERB, "We're accepting the call from %s\n", session->callee);
-				answer = !strcasecmp(msg_sdp_type, "answer");
+				gboolean answer = !strcasecmp(msg_sdp_type, "answer");
 				if(!answer) {
 					JANUS_LOG(LOG_VERB, "This is a response to an offerless INVITE\n");
 				}
@@ -4283,34 +4282,35 @@ static void *janus_sip_handler(void *data) {
 						json_object_set_new(info, "call-id", json_string(session->callid));
 					gateway->notify_event(&janus_sip_plugin, session->handle, info);
 				}
+
+				/* Check if the OK needs to be enriched with custom headers */
+				char custom_headers[2048];
+				janus_sip_parse_custom_headers(root, (char *)&custom_headers, sizeof(custom_headers));
+				/* Send 200 OK */
+				if(!answer) {
+					if(session->transaction)
+						g_free(session->transaction);
+					session->transaction = msg->transaction ? g_strdup(msg->transaction) : NULL;
+				}
+				g_atomic_int_set(&session->hangingup, 0);
+				janus_sip_call_update_status(session, janus_sip_call_status_incall);
+				if(session->stack->s_nh_i == NULL) {
+					JANUS_LOG(LOG_WARN, "NUA Handle for 200 OK still null??\n");
+				}
+				nua_respond(session->stack->s_nh_i,
+							200, sip_status_phrase(200),
+							SOATAG_USER_SDP_STR(sdp),
+							SOATAG_RTP_SELECT(SOA_RTP_SELECT_COMMON),
+							NUTAG_AUTOANSWER(0),
+							NUTAG_AUTOACK(FALSE),
+							TAG_IF(strlen(custom_headers) > 0, SIPTAG_HEADER_STR(custom_headers)),
+							TAG_END());
+				g_free(sdp);
 			} else {
 				// TODO switch to LOG_DBG
 				JANUS_LOG(LOG_INFO, "Call was preaccepted earlier, not doing media related work now...\n");
 			}
 
-			/* Check if the OK needs to be enriched with custom headers */
-			char custom_headers[2048];
-			janus_sip_parse_custom_headers(root, (char *)&custom_headers, sizeof(custom_headers));
-			/* Send 200 OK */
-			if(!answer) {
-				if(session->transaction)
-					g_free(session->transaction);
-				session->transaction = msg->transaction ? g_strdup(msg->transaction) : NULL;
-			}
-			g_atomic_int_set(&session->hangingup, 0);
-			janus_sip_call_update_status(session, janus_sip_call_status_incall);
-			if(session->stack->s_nh_i == NULL) {
-				JANUS_LOG(LOG_WARN, "NUA Handle for 200 OK still null??\n");
-			}
-			nua_respond(session->stack->s_nh_i,
-				200, sip_status_phrase(200),
-				SOATAG_USER_SDP_STR(sdp),
-				SOATAG_RTP_SELECT(SOA_RTP_SELECT_COMMON),
-				NUTAG_AUTOANSWER(0),
-				NUTAG_AUTOACK(FALSE),
-				TAG_IF(strlen(custom_headers) > 0, SIPTAG_HEADER_STR(custom_headers)),
-				TAG_END());
-			g_free(sdp);
 			/* Send an ack back */
 			result = json_object();
 			json_object_set_new(result, "event", json_string(answer ? "accepted" : "accepting"));
