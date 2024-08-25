@@ -4151,6 +4151,7 @@ static void *janus_sip_handler(void *data) {
 			if(error_code != 0)
 				goto error;
 
+			gboolean answer = TRUE;
 			if (!g_atomic_int_get(&session->preaccepted)) {
 				JANUS_LOG(LOG_INFO, "Call was not in preaccepted earlier, doing media related work now...\n");
 				json_t *srtp = json_object_get(root, "srtp");
@@ -4203,7 +4204,7 @@ static void *janus_sip_handler(void *data) {
 				}
 				/* Accept a call from another peer */
 				JANUS_LOG(LOG_VERB, "We're accepting the call from %s\n", session->callee);
-				gboolean answer = !strcasecmp(msg_sdp_type, "answer");
+				answer = !strcasecmp(msg_sdp_type, "answer");
 				if(!answer) {
 					JANUS_LOG(LOG_VERB, "This is a response to an offerless INVITE\n");
 				}
