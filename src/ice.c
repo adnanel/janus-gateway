@@ -337,7 +337,7 @@ void janus_ice_debugging_enable(void) {
 	JANUS_LOG(LOG_VERB, "Debugging NICE_DEBUG=%s G_MESSAGES_DEBUG=%s\n",
 		g_getenv("NICE_DEBUG"), g_getenv("G_MESSAGES_DEBUG"));
 	janus_ice_debugging_enabled = TRUE;
-	nice_debug_enable(strstr(g_getenv("NICE_DEBUG"), "all") || strstr(g_getenv("NICE_DEBUG"), "stun"));
+	nice_debug_enable(1);
 }
 void janus_ice_debugging_disable(void) {
 	JANUS_LOG(LOG_VERB, "Disabling libnice debugging...\n");
