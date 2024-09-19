@@ -5230,6 +5230,15 @@ void janus_sip_sofia_callback(nua_event_t event, int status, char const *phrase,
 				session->hangup_reason_header = NULL;
 				session->hangup_reason_header_protocol = NULL;
 				session->hangup_reason_header_cause = NULL;
+				JANUS_LOG(
+						LOG_WARN,
+						"[%s]: session->establishing %d, session->established %d, has_audio %d, has_video %d\n",
+						session->account.username,
+						g_atomic_int_get(&session->establishing),
+						g_atomic_int_get(&session->established),
+						session->media.has_audio,
+						session->media.has_video
+				);
 				if(g_atomic_int_get(&session->establishing) || g_atomic_int_get(&session->established)) {
 					if(session->media.has_audio || session->media.has_video) {
 						/* Get rid of the PeerConnection in the core */
