@@ -1483,6 +1483,7 @@ static void janus_sip_srtp_cleanup(janus_sip_session *session) {
 static void janus_sip_media_reset(janus_sip_session *session) {
 	if(session == NULL)
 		return;
+	JANUS_LOG(LOG_ERR, "janus_sip_media_reset %s\n", session->account.username);
 	g_free(session->media.remote_audio_ip);
 	session->media.remote_audio_ip = NULL;
 	g_free(session->media.remote_video_ip);
@@ -2274,6 +2275,7 @@ void janus_sip_create_session(janus_plugin_session *handle, int *error) {
 		*error = -1;
 		return;
 	}
+	JANUS_LOG(LOG_WARN, "janus_sip_create_session");
 	janus_sip_session *session = g_malloc0(sizeof(janus_sip_session));
 	session->handle = handle;
 	session->account.identity = NULL;
