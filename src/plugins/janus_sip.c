@@ -7470,7 +7470,16 @@ static void *janus_sip_relay_thread(void *data) {
 	janus_sip_media_cleanup(session);
 	janus_mutex_unlock(&session->mutex);
 	/* Done */
-	JANUS_LOG(LOG_VERB, "Leaving SIP relay thread\n");
+	JANUS_LOG(
+			LOG_VERB,
+			"Leaving SIP relay thread %d %d %d %d %d %d\n",
+			goon,
+			session != NULL,
+			!g_atomic_int_get(&session->destroyed),
+			session->status,
+			session->status > janus_sip_call_status_idle,
+			session->status < janus_sip_call_status_closing
+	);
 	session->relayer_thread = NULL;
 	janus_refcount_decrease(&session->ref);
 	g_thread_unref(g_thread_self());
