@@ -5230,9 +5230,10 @@ void janus_sip_sofia_callback(nua_event_t event, int status, char const *phrase,
 				session->hangup_reason_header = NULL;
 				session->hangup_reason_header_protocol = NULL;
 				session->hangup_reason_header_cause = NULL;
+
+				/* Get rid of the PeerConnection in the core */
+				gateway->close_pc(session->handle);
 				if(g_atomic_int_get(&session->establishing) || g_atomic_int_get(&session->established)) {
-					/* Get rid of the PeerConnection in the core */
-					gateway->close_pc(session->handle);
 					/* Also clean up locally, in case there was no PC */
 					janus_sip_hangup_media_internal(session->handle);
 				} else {
