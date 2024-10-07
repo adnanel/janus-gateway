@@ -5233,22 +5233,8 @@ void janus_sip_sofia_callback(nua_event_t event, int status, char const *phrase,
 
 				/* Get rid of the PeerConnection in the core */
 				gateway->close_pc(session->handle);
-				if(g_atomic_int_get(&session->establishing) || g_atomic_int_get(&session->established)) {
-					/* Also clean up locally, in case there was no PC */
-					janus_sip_hangup_media_internal(session->handle);
-				} else {
-					JANUS_LOG(
-						LOG_WARN,
-						"  >> Not cleaning up this shit because state was: %d %d %d\n",
-						g_atomic_int_get(&session->establishing),
-						g_atomic_int_get(&session->established),
-						g_atomic_int_get(&session->media.ready)
-					);
-					if (session->media.ready == TRUE) {
-						JANUS_LOG(LOG_WARN, "  >> Cleaning up because media is ready\n");
-						janus_sip_hangup_media_internal(session->handle);
-					}
-				}
+				/* Also clean up locally, in case there was no PC */
+				janus_sip_hangup_media_internal(session->handle);
 			} else if(session->stack->s_nh_i == nh && callstate == nua_callstate_calling && session->status == janus_sip_call_status_incall) {
 				/* Have just sent re-INVITE */
 				janus_sip_call_update_status(session, janus_sip_call_status_incall_reinviting);
