@@ -7450,6 +7450,16 @@ static void *janus_sip_relay_thread(void *data) {
 			}
 		}
 	}
+
+	JANUS_LOG(
+			LOG_WARN,
+			"  >> %s - Not cleaning up this shit because state was: %d %d %d\n",
+			session->account.username,
+			g_atomic_int_get(&session->establishing),
+			g_atomic_int_get(&session->established),
+			g_atomic_int_get(&session->media.ready)
+	);
+
 	/* Cleanup the media session */
 	janus_mutex_lock(&session->mutex);
 	janus_sip_media_cleanup(session);
