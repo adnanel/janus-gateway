@@ -10741,6 +10741,7 @@ static void *janus_videoroom_handler(void *data) {
 				/* We use an array of streams to state the changes we want to make,
 				 * were for each stream we specify the 'mid' to impact (e.g., send) */
 				json_t *streams = json_object_get(root, "streams");
+				JANUS_LOG(LOG_WARN, "Adnan: Here 12");
 				if(streams == NULL) {
 					/* No streams object, check if the properties have been
 					 * provided globally, which is how we handled this
@@ -10770,6 +10771,7 @@ static void *janus_videoroom_handler(void *data) {
 				janus_mutex_lock(&participant->streams_mutex);
 				size_t i = 0;
 				size_t streams_size = json_array_size(streams);
+				JANUS_LOG(LOG_WARN, "Adnan: Here 11");
 				for(i=0; i<streams_size; i++) {
 					json_t *s = json_array_get(streams, i);
 					JANUS_VALIDATE_JSON_OBJECT(s, publish_stream_parameters,
@@ -10798,6 +10800,7 @@ static void *janus_videoroom_handler(void *data) {
 						data = NULL;
 					}
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 10 %d", error_code);
 				if(error_code != 0) {
 					janus_mutex_unlock(&participant->streams_mutex);
 					janus_refcount_decrease(&participant->ref);
@@ -10809,6 +10812,7 @@ static void *janus_videoroom_handler(void *data) {
 					JANUS_LOG(LOG_WARN, "Got an 'update' request, but no SDP update? Ignoring...\n");
 					do_update = FALSE;
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 9");
 				/* Check if there's an SDP to take into account */
 				if(json_string_value(json_object_get(msg->jsep, "sdp"))) {
 					if(audiocodec) {
@@ -10854,6 +10858,7 @@ static void *janus_videoroom_handler(void *data) {
 						participant->vcodec = vcodec;
 					}
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 8");
 				/* Enforce the requested changes (if configuring) */
 				for(i=0; i<json_array_size(streams); i++) {
 					/* Get the stream we need to tweak */
@@ -10940,6 +10945,7 @@ static void *janus_videoroom_handler(void *data) {
 						temp = temp->next;
 					}
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 7");
 				janus_mutex_unlock(&participant->streams_mutex);
 				if(bitrate) {
 					participant->bitrate = json_integer_value(bitrate);
@@ -10969,6 +10975,7 @@ static void *janus_videoroom_handler(void *data) {
 						record_locked = TRUE;
 					}
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 6");
 				janus_mutex_lock(&participant->rec_mutex);
 				gboolean prev_recording_active = participant->recording_active;
 				if(record && !record_locked) {
@@ -10981,6 +10988,7 @@ static void *janus_videoroom_handler(void *data) {
 					JANUS_LOG(LOG_VERB, "Setting recording basename: %s (room %s, user %s)\n",
 						participant->recording_base, participant->room_id_str, participant->user_id_str);
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 5");
 				/* Do we need to do something with the recordings right now? */
 				if(participant->recording_active != prev_recording_active) {
 					/* Something changed */
@@ -11005,6 +11013,7 @@ static void *janus_videoroom_handler(void *data) {
 						janus_mutex_unlock(&participant->streams_mutex);
 					}
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 4");
 				janus_mutex_unlock(&participant->rec_mutex);
 				if(display) {
 					janus_mutex_lock(&participant->room->mutex);
@@ -11026,6 +11035,7 @@ static void *janus_videoroom_handler(void *data) {
 					g_free(old_display);
 					janus_mutex_unlock(&participant->room->mutex);
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 3");
 				if(metadata) {
 					janus_mutex_lock(&participant->room->mutex);
 					json_t *old_metadata = participant->metadata;
@@ -11046,6 +11056,7 @@ static void *janus_videoroom_handler(void *data) {
 					}
 					janus_mutex_unlock(&participant->room->mutex);
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 2");
 				/* Are we updating the description? */
 				if(descriptions != NULL && json_array_size(descriptions) > 0 && json_string_value(json_object_get(msg->jsep, "sdp")) == NULL) {
 					/* We only do this here if this is an SDP-less configure: in case
@@ -11073,6 +11084,7 @@ static void *janus_videoroom_handler(void *data) {
 					janus_mutex_unlock(&participant->streams_mutex);
 					janus_mutex_unlock(&participant->room->mutex);
 				}
+				JANUS_LOG(LOG_WARN, "Adnan: Here 1");
 				/* Done */
 				event = json_object();
 				json_object_set_new(event, "videoroom", json_string("event"));
