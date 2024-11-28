@@ -497,6 +497,13 @@ const char *janus_wsevh_get_package(void) {
 
 void janus_wsevh_incoming_event(json_t *event) {
 	if(g_atomic_int_get(&stopping) || !g_atomic_int_get(&initialized)) {
+		JANUS_LOG(
+				LOG_INFO,
+				"janus_wsevh_incoming_event(%d, %d, %d)\n",
+				g_atomic_int_get(&stopping),
+				g_atomic_int_get(&initialized),
+				g_atomic_int_get(&reconnect)
+		);
 		/* Janus is closing or the plugin is */
 		return;
 	}

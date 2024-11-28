@@ -89,6 +89,7 @@ void janus_events_notify_handlers(int type, int subtype, guint64 session_id, ...
 	va_list args;
 	va_start(args, session_id);
 
+	JANUS_LOG(LOG_WARN, "janus_events_notify_handlers(%d, %d) - %d!\n", type, subtype, eventsenabled);
 	if(!eventsenabled || eventhandlers == NULL || g_hash_table_size(eventhandlers) == 0) {
 		/* Event handlers disabled, or no event handler plugins available: free resources, if needed */
 		if(type == JANUS_EVENT_TYPE_MEDIA || type == JANUS_EVENT_TYPE_WEBRTC) {
@@ -267,6 +268,7 @@ void janus_events_notify_handlers(int type, int subtype, guint64 session_id, ...
 	va_end(args);
 
 	if(!eventsenabled) {
+		JANUS_LOG(LOG_INFO, "Events not enabled?\n");
 		json_decref(event);
 		return;
 	}
@@ -281,8 +283,10 @@ void *janus_events_thread(void *data) {
 	while(eventsenabled) {
 		/* Any event in queue? */
 		event = g_async_queue_pop(events);
-		if(event == &exit_event)
+		if(event == &exit_event) {
+			JANUS_LOG(LOG_INFO, "exit event!\n");
 			break;
+		}
 
 		/* Notify all interested handlers, increasing the event reference to make sure it's not lost because of errors */
 		int type = json_integer_value(json_object_get(event, "type"));
@@ -293,10 +297,16 @@ void *janus_events_thread(void *data) {
 		json_incref(event);
 		while(g_hash_table_iter_next(&iter, NULL, &value)) {
 			janus_eventhandler *e = value;
-			if(e == NULL)
+			if(e == NULL) {
+				JANUS_LOG(LOG_INFO, "e == null!!!\n");
 				continue;
-			if(!janus_flags_is_set(&e->events_mask, type))
+			}
+			if(!janus_flags_is_set(&e->events_mask, type)) {
+				JANUS_LOG(LOG_INFO, "CHECK 1\n");
 				continue;
+			}
+
+			JANUS_LOG(LOG_INFO, "Invoking event handler %d\n", count);
 			if(count == 1) {
 				/* Single event handler: pass this instance directly */
 				e->incoming_event(event);
