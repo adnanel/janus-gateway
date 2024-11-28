@@ -4359,11 +4359,13 @@ void janus_plugin_notify_event(janus_plugin *plugin, janus_plugin_session *plugi
 	char *opaque_id = NULL;
 	if(plugin_session != NULL) {
 		if(!janus_plugin_session_is_alive(plugin_session)) {
+			JANUS_LOG(LOG_WARN, "Plugin session is not alive!\n");
 			json_decref(event);
 			return;
 		}
 		janus_ice_handle *ice_handle = (janus_ice_handle *)plugin_session->gateway_handle;
 		if(!ice_handle) {
+			JANUS_LOG(LOG_WARN, "No ice handle!\n");
 			json_decref(event);
 			return;
 		}
@@ -4371,6 +4373,7 @@ void janus_plugin_notify_event(janus_plugin *plugin, janus_plugin_session *plugi
 		opaque_id = ice_handle->opaque_id;
 		janus_session *session = (janus_session *)ice_handle->session;
 		if(!session) {
+			JANUS_LOG(LOG_WARN, "No session!\n");
 			json_decref(event);
 			return;
 		}
